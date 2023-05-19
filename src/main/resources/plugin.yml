@@ -1,0 +1,7 @@
+name: SimpleAFKPool
+version: '${version}'
+main: xyz.joscodes.simpleafkpool.SimpleAFKPool
+website: https://joscodes.xyz
+author: Jos
+api-version: 1.16
+depend: [WorldGuard]

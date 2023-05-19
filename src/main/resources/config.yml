@@ -1,0 +1,4 @@
+commandRanInConsole: eco give %player% 10
+regionName: afk-pool
+afkMessage: "&7You gained &a&n$10&7 for being AFK!"
+afkTime: 60
