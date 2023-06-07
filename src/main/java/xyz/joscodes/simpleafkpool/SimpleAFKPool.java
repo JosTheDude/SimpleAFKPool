@@ -5,7 +5,6 @@ import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -20,7 +19,7 @@ public class SimpleAFKPool extends JavaPlugin {
 	private String commandRanInConsole;
 	private String regionName;
 	private String afkMessage;
-
+	private Player player;
 	@Override
 	public void onEnable() {
 		// Initialize configuration values
@@ -32,10 +31,16 @@ public class SimpleAFKPool extends JavaPlugin {
 		int afkTime = getConfig().getInt("afkTime");
 
 		// Schedule task to check for players in the region every minute
-		getServer().getScheduler().runTaskTimerAsynchronously(this, this::checkRegionPlayers, 0L, 20L * afkTime);
+		getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+			player = checkRegionPlayers();
+		}, 0L, 20L * afkTime);
+
+		if (player != null) {
+			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandRanInConsole.replace("%player%", player.getName()));
+		}
 	}
 
-	private void checkRegionPlayers() {
+	private Player checkRegionPlayers() {
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			Location location = player.getLocation();
 			RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
@@ -47,16 +52,19 @@ public class SimpleAFKPool extends JavaPlugin {
 			RegionManager regions = container.get(world);
 
 			if (regions == null) {
-				return;
+				continue;
 			}
 
 			ProtectedRegion region = regions.getRegion(regionName);
 
 			if (region != null && region.contains(BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ()))) {
-				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), commandRanInConsole.replace("%player%", player.getName()));
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', afkMessage));
+				return player;
 			}
 		}
+		return null;
 	}
+
+
 
 }
